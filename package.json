@@ -6,8 +6,8 @@
 		"type": "git",
 		"url": "https://github.com/yuki777/vscode-bear-peek"
 	},
-	"description": "",
-	"version": "0.0.1",
+	"description": "description here.",
+	"version": "0.1.1",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
@@ -17,13 +17,13 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./out/extension.js",
+	"main": "./out/src/extension.js",
 	"contributes": {
 		"commands": [],
 		"configuration": {
-			"title": "BEAR Peek extension configuration",
+			"title": "vscode-bear-peek extension configuration",
 			"properties": {
-				"bear-peek.supportedLanguages": {
+				"vscode-bear-peek.supportedLanguages": {
 					"type": "array",
 					"default": [
 						"php"
@@ -33,7 +33,7 @@
 					},
 					"description": "A list of vscode language names where the extension should be used."
 				},
-				"bear-peek.targetFileExtensions": {
+				"vscode-bear-peek.targetFileExtensions": {
 					"type": "array",
 					"default": [
 						".php"
@@ -42,6 +42,29 @@
 						"type": "string"
 					},
 					"description": "list of extensions that should be tried for finding peeked files. These are tried in order as further extensions of the potential file name and also as alternative file endings instead of the existing file extension (if available)"
+				},
+				"vscode-bear-peek.resourceAppPaths": {
+					"type": "array",
+					"default": [
+						"src/Resource/App"
+					],
+					"items": {
+						"type": "string"
+					},
+					"description": "hoge hoge."
+				},
+				"vscode-bear-peek.resourcePagePaths": {
+					"type": "array",
+					"default": [
+						"src/Resource/Page",
+						"src/Resource/Page/Admin",
+						"src/Resource/Page/Cli",
+						"src/Resource/Page/Content"
+					],
+					"items": {
+						"type": "string"
+					},
+					"description": "piyo piyo."
 				}
 			}
 		}

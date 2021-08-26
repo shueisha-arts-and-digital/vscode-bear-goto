@@ -36,4 +36,10 @@ code-insiders --uninstall-extension yuki777.vscode-bear-peek
 
 # Install extension
 code-insiders --install-extension vscode-bear-peek-0.0.1.vsix
+
+# Increment version, clean out, build, uninstall
+npm --no-git-tag-version version patch \
+&& rm -fr out vscode-bear-peek-*.vsix \
+&& vsce package \
+&& code-insiders --uninstall-extension yuki777.vscode-bear-peek
 ```
