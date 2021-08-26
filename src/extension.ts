@@ -21,7 +21,6 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.setLanguageConfiguration("php", languageConfiguration)
   );
-
 }
 
 export function deactivate() {

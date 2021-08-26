@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as child_process from 'child_process';
 
 export default class PeekFileDefinitionProvider implements vscode.DefinitionProvider {
   targetFileExtensions: string[] = [];
@@ -16,8 +17,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const selection = doc.getWordRangeAtPosition(position);
     const selectedText = doc.getText(selection);
 
-    let resourceParts = selectedText.match(/'(app|page):\/\/self\/(.*)'/);
-    //let appOrPage = resourceParts[1].charAt(0).toUpperCase() + resourceParts[1].slice(1);
+    let resourceParts = selectedText.match(/['"](app|page):\/\/self\/(.*)['"]/);
     let dashed = resourceParts[2].split("-").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
     let slashed = dashed.split("/").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
 
@@ -39,26 +39,23 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
   provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location | vscode.Location[]> {
     let filePaths = [];
-    const componentNames = this.getResourceName(position);
-    const searchPathActions = componentNames.map(this.searchFilePath);
+    const resourceNames = this.getResourceName(position);
+    const searchPathActions = resourceNames.map(this.searchFilePath);
     const searchPromises = Promise.all(searchPathActions); // pass array of promises
     return searchPromises.then(
       (paths) => {
         filePaths = [].concat.apply([], paths);
-        if (filePaths.length) {
-          let allPaths = [];
-          filePaths.forEach((filePath) => {
-            allPaths.push(
-              new vscode.Location(
-                vscode.Uri.file(`${filePath.path}`),
-                new vscode.Position(0, 1) // TODO: getなら 'function onGet'に移動したい
-              )
-            );
-          });
-          return allPaths;
-        } else {
+        if (!filePaths.length) {
           return undefined;
         }
+
+        let allPaths = [];
+        filePaths.forEach((filePath) => {
+          let command = "grep -n 'function onGet(' " + filePath.path + "|awk -F ':' '{print $1}'|tr -d '\n'||echo -n 1";
+          let stdout = child_process.execSync(command).toString();
+          allPaths.push(new vscode.Location(vscode.Uri.file(`${filePath.path}`), new vscode.Position(parseInt(stdout) - 1, 1)));
+        });
+        return allPaths;
       },
       (reason) => {
         return undefined;
