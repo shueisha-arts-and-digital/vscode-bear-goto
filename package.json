@@ -7,7 +7,7 @@
 		"url": "https://github.com/yuki777/vscode-bear-peek"
 	},
 	"description": "description here.",
-	"version": "0.1.1",
+	"version": "0.1.4",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
