@@ -5,7 +5,7 @@ import PeekFileDefinitionProvider from "./PeekFileDefinitionProvider";
 const languageConfiguration: vscode.LanguageConfiguration = { wordPattern: /['"]([^'"]*?)['"]/ };
 
 export function activate(context: vscode.ExtensionContext) {
-  const configParams = vscode.workspace.getConfiguration("vscode-bear-peek");
+  const configParams = vscode.workspace.getConfiguration("vscode-bear-goto");
   const supportedLanguages = configParams.get("supportedLanguages") as Array<string>;
   const targetFileExtensions = configParams.get("targetFileExtensions") as Array<string>;
   const resourceAppPaths = configParams.get("resourceAppPaths") as Array<string>;

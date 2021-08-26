@@ -1,4 +1,4 @@
-# vscode-bear-peek
+# vscode-bear-goto
 
 ## Features
 - go to definition
