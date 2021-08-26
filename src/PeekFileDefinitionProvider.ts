@@ -9,17 +9,36 @@ export default class PeekFileDefinitionProvider
     this.targetFileExtensions = targetFileExtensions;
   }
 
-  getComponentName(position: vscode.Position): String[] {
+  getResourceName(position: vscode.Position): String[] {
+    // 'foo'や'bar'ではなく、'page://self/foo/bar'を取りたい
+    //const newPosition = position.translate(0, - position.character)
+    //const newPosition = position.translate();
+    //const newPosition = position.translate(0,0);
+    //const newPosition = position.translate(0, - position.character)
+    //const newPosition = position.with(0, - position.character)
+    //const newPosition = position.with();
+    //const newPosition = position.with(0,0);
+    //const newPosition = position.with(position.line, 0);
+    //const newPosition = position.with(position.line, position.character);
+    //const newPosition = position.with(- position.line, - position.character);
+    //const fooSelection = doc.getWordRangeAtPosition(foo);
+    //const fooSelectedText = doc.getText(fooSelection);
+    //console.log(fooSelectedText);
+
     const doc = vscode.window.activeTextEditor.document;
     const selection = doc.getWordRangeAtPosition(position);
     const selectedText = doc.getText(selection);
+    console.log(selectedText);
+
     let possibleFileNames = [],
       altName = "";
 
+    // article => Article
     selectedText.match(/\w+/g).forEach((str) => {
       return (altName += str[0].toUpperCase() + str.substring(1));
     });
 
+    // [article.php, article/index.php, Article.php, Article/index.php]
     this.targetFileExtensions.forEach((ext) => {
       possibleFileNames.push(selectedText + ext);
       possibleFileNames.push(selectedText + "/index" + ext);
@@ -40,7 +59,9 @@ export default class PeekFileDefinitionProvider
     token: vscode.CancellationToken
   ): Promise<vscode.Location | vscode.Location[]> {
     let filePaths = [];
-    const componentNames = this.getComponentName(position);
+    //const componentNames = this.getResourceName(position);
+    //const componentNames = this.getResourceName(position.translate(0, - position.character));
+    const componentNames = this.getResourceName(position.with(102, 0));
     const searchPathActions = componentNames.map(this.searchFilePath);
     const searchPromises = Promise.all(searchPathActions); // pass array of promises
 
