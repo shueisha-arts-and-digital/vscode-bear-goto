@@ -2,8 +2,6 @@
 import * as vscode from "vscode";
 import PeekFileDefinitionProvider from "./PeekFileDefinitionProvider";
 
-const languageConfiguration: vscode.LanguageConfiguration = { wordPattern: /['"]([^'"]*?)['"]/ };
-
 export function activate(context: vscode.ExtensionContext) {
   const configParams = vscode.workspace.getConfiguration("vscode-bear-goto");
   const supportedLanguages = configParams.get("supportedLanguages") as Array<string>;
@@ -19,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.languages.setLanguageConfiguration("php", languageConfiguration)
+    vscode.languages.setLanguageConfiguration(
+      "php",
+      { wordPattern: /(get|post|put|delete)?\(?['"]([^'"]*?)['"]/ })
   );
 }
 
