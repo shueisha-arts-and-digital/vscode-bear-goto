@@ -1,4 +1,10 @@
 # vscode-bear-goto
 
 ## Features
-- go to definition
+- Go to definition
+
+## Support
+- [x] Mac
+- [x] Ubuntu
+- [x] Windows(WSL)
+- [ ] Windows
