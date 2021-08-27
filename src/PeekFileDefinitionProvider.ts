@@ -18,13 +18,13 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const selectedText = doc.getText(selection);
 
     let resourceParts = selectedText.match(/['"](app|page):\/\/self\/(.*)['"]/);
-    let dashed = resourceParts[2].split("-").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
-    let slashed = dashed.split("/").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
+    let slashed = resourceParts[2].split("/").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
+    let dashed = slashed.split("-").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("");
 
     let possibleFileNames = [];
     this.resourceAppPaths.forEach((resourceAppPath) => {
       this.targetFileExtensions.forEach((ext) => {
-        let file = resourceAppPath + "/" + slashed;
+        let file = resourceAppPath + "/" + dashed;
         possibleFileNames.push(file + ext);
         possibleFileNames.push(file + '/Index' + ext);
       });
