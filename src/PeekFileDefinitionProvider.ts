@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as child_process from 'child_process';
+import * as parsePath from 'parse-path';
 
 export default class PeekFileDefinitionProvider implements vscode.DefinitionProvider {
   targetFileExtensions: string[] = [];
@@ -17,9 +18,10 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const selection = doc.getWordRangeAtPosition(position);
     const selectedText = doc.getText(selection);
 
-    let resourceParts = selectedText.match(/['"](app|page):\/\/self\/(.*)['"]/);
-    let slashed = resourceParts[2].split("/").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("/");
-    let dashed = slashed.split("-").map((x) => { return x.charAt(0).toUpperCase() + x.slice(1) }).join("");
+    let resourceParts = selectedText.match(/(get|post|put|delete)?\(?['"](app|page):\/\/self\/(.*)['"]/);
+    let replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
+    let slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    let dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
 
     let possibleFileNames = [];
     this.resourceAppPaths.forEach((resourceAppPath) => {
@@ -52,8 +54,8 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
         let allPaths = [];
         filePaths.forEach((filePath) => {
           let command = "grep -n 'function onGet(' " + filePath.path + "|awk -F ':' '{print $1}'|tr -d '\n'||echo -n 1";
-          let stdout = child_process.execSync(command).toString();
-          allPaths.push(new vscode.Location(vscode.Uri.file(`${filePath.path}`), new vscode.Position(parseInt(stdout) - 1, 1)));
+          let line = child_process.execSync(command).toString();
+          allPaths.push(new vscode.Location(vscode.Uri.file(`${filePath.path}`), new vscode.Position(parseInt(line) - 1, 1)));
         });
         return allPaths;
       },
