@@ -10,4 +10,3 @@
 - [x] Mac
 - [x] Ubuntu
 - [x] Windows(WSL)
-- [ ] Windows
