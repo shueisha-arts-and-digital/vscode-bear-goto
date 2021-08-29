@@ -19,18 +19,29 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const selectedText = doc.getText(selection);
 
     let resourceParts = selectedText.match(/(get|post|put|delete)?\(?['"](app|page):\/\/self\/(.*)['"]/);
+    let appOrPage = resourceParts[2];
     let replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
     let slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
     let dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
 
+    let file = '';
     let possibleFileNames = [];
-    this.resourceAppPaths.forEach((resourceAppPath) => {
-      this.targetFileExtensions.forEach((ext) => {
-        let file = resourceAppPath + "/" + dashed;
-        possibleFileNames.push(file + ext);
-        possibleFileNames.push(file + '/Index' + ext);
+    if (appOrPage === 'app') {
+      this.resourceAppPaths.forEach((resourceAppPath) => {
+        this.targetFileExtensions.forEach((ext) => {
+          file = resourceAppPath + "/" + dashed;
+          possibleFileNames.push(file + ext);
+        });
       });
-    });
+    } else {
+      this.resourcePagePaths.forEach((resourcePagePath) => {
+        this.targetFileExtensions.forEach((ext) => {
+          file = resourcePagePath + "/" + dashed;
+          possibleFileNames.push(file + ext);
+          possibleFileNames.push(file + '/Index' + ext);
+        });
+      });
+    }
 
     return possibleFileNames;
   }
@@ -53,9 +64,13 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
         let allPaths = [];
         filePaths.forEach((filePath) => {
-          let command = "grep -n 'function onGet(' " + filePath.path + "|awk -F ':' '{print $1}'|tr -d '\n'||echo -n 1";
-          let line = child_process.execSync(command).toString();
-          allPaths.push(new vscode.Location(vscode.Uri.file(`${filePath.path}`), new vscode.Position(parseInt(line) - 1, 1)));
+          // jump to line:1
+          allPaths.push(new vscode.Location(vscode.Uri.file(filePath.path), new vscode.Position(0, 0)));
+
+          // jump to line:`on${$method}`
+          //let command = "grep -n 'function onGet(' " + filePath.path + "|awk -F ':' '{print $1}'|tr -d '\n'||echo -n 1";
+          //let line = child_process.execSync(command).toString();
+          //allPaths.push(new vscode.Location(vscode.Uri.file(filePath.path), new vscode.Position(parseInt(line) - 1, 1)));
         });
         return allPaths;
       },
