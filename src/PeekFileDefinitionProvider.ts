@@ -19,7 +19,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const selection = doc.getWordRangeAtPosition(position);
     const selectedText = doc.getText(selection);
 
-    let resourceParts = selectedText.match(/(get|post|put|delete)?\(?['"](app|page):\/\/self\/(.*)['"]/);
+    let resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
     if (resourceParts === null) { return []; }
     let appOrPage = resourceParts[2];
     let replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
