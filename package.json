@@ -7,7 +7,7 @@
     "url": "https://github.com/yuki777/vscode-bear-goto"
   },
   "description": "Jump to resource.",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "engines": {
     "node": "14.*",
     "npm": "6.*",
