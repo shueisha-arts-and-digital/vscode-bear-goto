@@ -19,11 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  context.subscriptions.push(
-    vscode.languages.setLanguageConfiguration(
-      "php",
-      { wordPattern: /(get|post|put|delete)?\(?['"]([^'"]*?)['"]/ })
-  );
+  const wordPattern = { wordPattern: /(get|post|put|delete|resource)?\(?['"]([^'"]*?)['"]/ };
+  context.subscriptions.push(vscode.languages.setLanguageConfiguration("php", wordPattern));
+  context.subscriptions.push(vscode.languages.setLanguageConfiguration("twig", wordPattern));
 }
 
 // this method is called when your extension is deactivated

@@ -7,7 +7,7 @@
     "url": "https://github.com/yuki777/vscode-bear-goto"
   },
   "description": "Jump to resource.",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "engines": {
     "vscode": "^1.59.0"
   },
@@ -15,7 +15,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:php"
+    "onLanguage:php",
+    "onLanguage:twig"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -26,7 +27,8 @@
         "vscode-bear-goto.supportedLanguages": {
           "type": "array",
           "default": [
-            "php"
+            "php",
+            "twig"
           ],
           "items": {
             "type": "string"
@@ -36,7 +38,8 @@
         "vscode-bear-goto.targetFileExtensions": {
           "type": "array",
           "default": [
-            ".php"
+            ".php",
+            ".twig"
           ],
           "items": {
             "type": "string"
