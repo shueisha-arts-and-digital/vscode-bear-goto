@@ -1,12 +1,10 @@
 name: Release
 
 on:
-  push:
-    branches:
-    - main
   release:
     types:
-    - created
+      - published
+  workflow_dispatch:
 
 jobs:
   release:
