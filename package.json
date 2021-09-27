@@ -7,7 +7,7 @@
     "url": "https://github.com/yuki777/vscode-bear-goto"
   },
   "description": "Jump to resource.",
-  "version": "1.2.0",
+  "version": "1.9.0",
   "engines": {
     "node": "14.*",
     "npm": "6.*",
@@ -81,8 +81,7 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint --fix src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish --no-yarn ${npm_config_release_version}"
+    "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
