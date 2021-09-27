@@ -82,7 +82,6 @@
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint --fix src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish --no-yarn ${npm_config_release_version}"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
