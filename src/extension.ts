@@ -12,16 +12,47 @@ export function activate(context: vscode.ExtensionContext) {
   const resourceAppPaths = configParams.get("resourceAppPaths") as Array<string>;
   const resourcePagePaths = configParams.get("resourcePagePaths") as Array<string>;
 
+  const languageConfiguration: vscode.LanguageConfiguration = {
+    wordPattern: /(-?\d*\.\d\w*)|([^\-\`\~\!\@\#\%\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)|((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/g,
+    onEnterRules: [
+      {
+        // e.g. /** | */
+        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+        afterText: /^\s*\*\/$/,
+        action: { indentAction: vscode.IndentAction.IndentOutdent, appendText: ' * ' }
+      },
+      {
+        // e.g. /** ...|
+        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+        action: { indentAction: vscode.IndentAction.None, appendText: ' * ' }
+      },
+      {
+        // e.g.  * ...|
+        beforeText: /^(\t|(\ \ ))*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
+        action: { indentAction: vscode.IndentAction.None, appendText: '* ' }
+      },
+      {
+        // e.g.  */|
+        beforeText: /^(\t|(\ \ ))*\ \*\/\s*$/,
+        action: { indentAction: vscode.IndentAction.None, removeText: 1 }
+      },
+      {
+        // e.g.  *-----*/|
+        beforeText: /^(\t|(\ \ ))*\ \*[^/]*\*\/\s*$/,
+        action: { indentAction: vscode.IndentAction.None, removeText: 1 }
+      }
+    ]
+  };
+
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       supportedLanguages,
       new PeekFileDefinitionProvider(targetFileExtensions, resourceAppPaths, resourcePagePaths)
-    )
+    ),
+    vscode.languages.setLanguageConfiguration("php", languageConfiguration),
+    vscode.languages.setLanguageConfiguration("twig", languageConfiguration)
   );
 
-  const wordPattern = { wordPattern: /(get|post|put|delete|resource)?\(?['"]([^'"]*?)['"]/ };
-  context.subscriptions.push(vscode.languages.setLanguageConfiguration("php", wordPattern));
-  context.subscriptions.push(vscode.languages.setLanguageConfiguration("twig", wordPattern));
 }
 
 // this method is called when your extension is deactivated
