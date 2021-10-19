@@ -12,22 +12,18 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     this.resourcePagePaths = resourcePagePaths;
   }
 
-  getResourceName(position: vscode.Position): String[] {
-    if (vscode.window.activeTextEditor === undefined) { return []; }
-
-    const doc = vscode.window.activeTextEditor.document;
-    const selection = doc.getWordRangeAtPosition(position);
-    const selectedText = doc.getText(selection);
-
-    let resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
+  getResourceName(document: vscode.TextDocument, position: vscode.Position): String[] {
+    const range = document.getWordRangeAtPosition(position, /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/);
+    const selectedText = document.getText(range);
+    const resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
     if (resourceParts === null) { return []; }
-    let appOrPage = resourceParts[2];
-    let replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
-    let slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
-    let dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
+    const appOrPage = resourceParts[2];
+    const replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
+    const slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    const dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
 
     let file = '';
-    let possibleFileNames: String[] = [];
+    const possibleFileNames: String[] = [];
     if (appOrPage === 'app') {
       this.resourceAppPaths.forEach((resourceAppPath) => {
         this.targetFileExtensions.forEach((ext) => {
@@ -53,19 +49,18 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   }
 
   async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
-    let filePaths: any[] = [];
-    const resourceNames = this.getResourceName(position);
+    const resourceNames = this.getResourceName(document, position);
     const searchPathActions = resourceNames.map(this.searchFilePath);
     const searchPromises = Promise.all(searchPathActions); // pass array of promises
     const paths = await searchPromises;
 
     // @ts-ignore
-    filePaths = [].concat.apply([], paths);
+    const filePaths: any[] = [].concat.apply([], paths);
     if (!filePaths.length) {
       return undefined;
     }
 
-    let allPaths: any[] = [];
+    const allPaths: any[] = [];
     filePaths.forEach((filePath) => {
       allPaths.push(new vscode.Location(vscode.Uri.file(filePath.path), new vscode.Position(0, 0)));
     });
