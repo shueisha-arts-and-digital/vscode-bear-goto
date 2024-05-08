@@ -12,7 +12,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     this.resourcePagePaths = resourcePagePaths;
   }
 
-  getResourceName(document: vscode.TextDocument, position: vscode.Position): String[] {
+  getResourceName(document: vscode.TextDocument, position: vscode.Position): any[] {
     const range = document.getWordRangeAtPosition(position, /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/);
     const selectedText = document.getText(range);
     const resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
@@ -21,22 +21,32 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
     const slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
     const dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
+    const method = resourceParts[1].charAt(0).toUpperCase() + resourceParts[1].slice(1);
 
     let file = '';
-    const possibleFileNames: String[] = [];
+    const possibleFileNames: any[] = [];
     if (appOrPage === 'app') {
       this.resourceAppPaths.forEach((resourceAppPath) => {
         this.targetFileExtensions.forEach((ext) => {
           file = resourceAppPath + "/" + dashed;
-          possibleFileNames.push(file + ext);
+          possibleFileNames.push({
+            "file" : file + ext,
+            "method" : method
+          });
         });
       });
     } else {
       this.resourcePagePaths.forEach((resourcePagePath) => {
         this.targetFileExtensions.forEach((ext) => {
           file = resourcePagePath + "/" + dashed;
-          possibleFileNames.push(file + ext);
-          possibleFileNames.push(file + '/Index' + ext);
+          possibleFileNames.push({
+            "file" : file + ext,
+            "method" : method
+          });
+          possibleFileNames.push({
+            "file" : file + '/Index' + ext,
+            "method" : method
+          });
         });
       });
     }
@@ -50,7 +60,16 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
   async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
     const resourceNames = this.getResourceName(document, position);
-    const searchPathActions = resourceNames.map(this.searchFilePath);
+    const searchPathActions = resourceNames.map(async resourceName => {
+
+      const files = await this.searchFilePath(resourceName.file);
+      return files.map(file => {
+        return {
+          file: file,
+          method: resourceName.method
+        };
+      });
+    });
     const searchPromises = Promise.all(searchPathActions); // pass array of promises
     const paths = await searchPromises;
 
@@ -61,9 +80,17 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     }
 
     const allPaths: any[] = [];
-    filePaths.forEach((filePath) => {
-      allPaths.push(new vscode.Location(vscode.Uri.file(filePath.path), new vscode.Position(0, 0)));
-    });
+    for (const filePath of filePaths) {
+      const document = await vscode.workspace.openTextDocument(filePath.file.path);
+      const fileContent = document.getText();
+      const lines = fileContent.split('\n');
+      for (let line = 0; line < lines.length; line++) {
+          if (lines[line].includes("on" + filePath.method)) {
+              allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(line, 0)));
+              break;
+          }
+      }
+    }
 
     return allPaths;
   }
