@@ -9,8 +9,8 @@
   "description": "Jump to resource.",
   "version": "1.15.0",
   "engines": {
-    "node": "14.*",
-    "npm": "6.*",
+    "node": "18.*",
+    "npm": "10.*",
     "vscode": "^1.61.0"
   },
   "categories": [
@@ -100,5 +100,8 @@
   },
   "dependencies": {
     "parse-path": "^4.0.3"
+  },
+  "volta": {
+    "node": "18.20.2"
   }
 }
