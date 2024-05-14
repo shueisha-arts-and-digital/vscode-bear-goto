@@ -99,7 +99,7 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
-    "parse-path": "^4.0.3"
+    "parse-path": "^5.0.0"
   },
   "volta": {
     "node": "18.20.2"
