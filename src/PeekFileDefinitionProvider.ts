@@ -89,11 +89,18 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
       const document = await vscode.workspace.openTextDocument(filePath.file.path);
       const fileContent = document.getText();
       const lines = fileContent.split(/\r?\n/);
+      let found = false;
       for (let line = 0; line < lines.length; line++) {
           if (lines[line].includes(filePath.method)) {
+              // methodが見つかれば、その行へジャンプさせる
               allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(line, 0)));
+              found = true;
               break;
           }
+      }
+      if (!found) {
+          // methodが見つからなければ、ファイルの先頭へジャンプさせる
+          allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(0, 0)));
       }
     }
 
