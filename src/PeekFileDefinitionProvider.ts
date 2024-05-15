@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as parsePath from 'parse-path';
 
 export default class PeekFileDefinitionProvider implements vscode.DefinitionProvider {
   targetFileExtensions: string[] = [];
@@ -13,14 +12,20 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   }
 
   getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
+    // 現在のカーソル位置にある単語の範囲を取得する正規表現を定義
     const range = document.getWordRangeAtPosition(position, /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/);
+    // 定義された範囲内のテキストを取得
     const selectedText = document.getText(range);
+    // 取得したテキストを特定のパターンにマッチさせる
     const resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
     if (resourceParts === null) { return []; }
+    // app OR page
     const appOrPage = resourceParts[2];
-    const replaced = parsePath(resourceParts[3]).pathname.replace('{', '');
-    const slashed = replaced.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    // パスのクエリパラメータを無視し、スラッシュで区切られた各部分の先頭文字を大文字に変換して結合する
+    const slashed = resourceParts[3].split("?")[0].split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    // スラッシュで区切られた各部分の先頭文字を大文字に変換して結合した後、ハイフンで区切られた各部分の先頭文字を大文字に変換して結合する
     const dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
+    // onGet, onPost, onPut, onDelete, onResource
     const method = "on" + resourceParts[1].charAt(0).toUpperCase() + resourceParts[1].slice(1);
 
     let file = '';
