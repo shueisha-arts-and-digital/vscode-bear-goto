@@ -87,10 +87,11 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     const allPaths: any[] = [];
     for (const filePath of filePaths) {
       const document = await vscode.workspace.openTextDocument(filePath.file.path);
+      const methodRegex = new RegExp(`\\bfunction\\s+${filePath.method}\\s*\\(`);
       let found = false;
       for (let line = 0; line < document.lineCount; line++) {
           const lineText = document.lineAt(line).text;
-          if (lineText.includes(filePath.method)) {
+          if (methodRegex.test(lineText)) {
               // メソッドが見つかった場合
               allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(line, 0)));
               found = true;
