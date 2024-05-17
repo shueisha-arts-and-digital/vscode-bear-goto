@@ -81,7 +81,8 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint --fix src --ext ts",
-    "test": "node ./src/test/simple-test.js"
+    "test": "node ./out/test/runTest.js",
+    "test:regex": "node ./src/test/regexTest.js"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
