@@ -1,5 +1,5 @@
 // @see PeekFileDefinitionProvider.regexPattern
-const regexPattern = /(get|post|put|delete|resource|uri)\(['"](app|page):\/\/self\/(.*)['"]/;
+const regexPattern = /(get|post|put|delete|resource|uri|ResourceParam|Embed)\(.*?(app|page):\/\/self\/(.*)['"]/;
 
 function testRegexTrue(target) {
 	// Test
@@ -34,6 +34,9 @@ testRegexTrue("put('app://self/foo')");
 testRegexTrue("delete('app://self/foo')");
 testRegexTrue('resource("app://self/foo")');
 testRegexTrue('uri("app://self/foo")');
+testRegexTrue("#[ResourceParam(uri: 'app://self/user#ulid', param: 'userId')]");
+testRegexTrue("#[Embed(rel: 'foo', src: 'app://self/foo{?ulid}')]");
 
 testRegexFalse('resource("foo://self/foo")');
 testRegexFalse('foo("app://self/foo")');
+testRegexFalse('getFoo("app://self/foo")');
