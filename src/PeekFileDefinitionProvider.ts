@@ -5,7 +5,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   resourceAppPaths: string[] = [];
   resourcePagePaths: string[] = [];
 
-  public static readonly regexPattern = /(get|post|put|delete|resource)\(['"](app|page):\/\/self\/(.*)['"]/;
+  public static readonly regexPattern = /(get|post|put|delete|resource|uri)\(['"](app|page):\/\/self\/(.*)['"]/;
 
   constructor(targetFileExtensions: string[] = [], resourceAppPaths: string[] = [], resourcePagePaths: string[] = []) {
     this.targetFileExtensions = targetFileExtensions;
