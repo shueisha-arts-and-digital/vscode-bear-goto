@@ -64,7 +64,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
   async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
     const resourceNameAndMethods = this.getResourceNameAndMethod(document, position);
-    if(resourceNameAndMethods.length === 0) return [];
+    if(resourceNameAndMethods.length === 0) {return [];}
 
     const searchPathActions = resourceNameAndMethods.map(async resourceNameAndMethod => {
       const files = await this.searchFilePath(resourceNameAndMethod.file);
