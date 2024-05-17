@@ -5,6 +5,9 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   resourceAppPaths: string[] = [];
   resourcePagePaths: string[] = [];
 
+  public static readonly rangeRegexPattern = /\(?['"](app|page):\/\/self\/(.*)['"]/;
+  public static readonly partsRegexPattern = /(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/;
+
   constructor(targetFileExtensions: string[] = [], resourceAppPaths: string[] = [], resourcePagePaths: string[] = []) {
     this.targetFileExtensions = targetFileExtensions;
     this.resourceAppPaths = resourceAppPaths;
@@ -13,11 +16,11 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
   getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
     // 現在のカーソル位置にある単語の範囲を取得する正規表現を定義
-    const range = document.getWordRangeAtPosition(position, /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/);
+    const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.rangeRegexPattern);
     // 定義された範囲内のテキストを取得
     const selectedText = document.getText(range);
     // 取得したテキストを特定のパターンにマッチさせる
-    const resourceParts = selectedText.match(/(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/);
+    const resourceParts = selectedText.match(PeekFileDefinitionProvider.partsRegexPattern);
     if (resourceParts === null) { return []; }
     // app OR page
     const appOrPage = resourceParts[2];
