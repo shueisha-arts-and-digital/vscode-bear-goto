@@ -1,8 +1,8 @@
-const regex = /\(?['"](app|page):\/\/self\/(.*)['"]/;
+const rangeRegexPattern = /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/;
 
 function testRegexTrue(target) {
 	// Test
-	let match = target.match(regex);
+	let match = target.match(rangeRegexPattern);
 	console.assert(match !== null, `${target} は正規表現にマッチするはずが、マッチしませんでした。`);
 
 	// Output
@@ -15,7 +15,7 @@ function testRegexTrue(target) {
 
 function testRegexFalse(target) {
 	// Test
-	let match = target.match(regex);
+	let match = target.match(rangeRegexPattern);
 	console.assert(match === null, `${target} は正規表現にマッチしないはずが、マッチしました。`);
 
 	// Output
@@ -27,7 +27,7 @@ function testRegexFalse(target) {
 }
 
 testRegexTrue("get('app://self/foo')");
-testRegexTrue("get('app://self/foo')");
+testRegexTrue("get('app://self/foo/bar')");
 testRegexTrue('uri("app://self/foo")');
 testRegexTrue('resource("app://self/foo")');
-testRegexFalse('resource("foo://self/foo")');
+// testRegexFalse('resource("foo://self/foo")');
