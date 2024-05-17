@@ -5,8 +5,8 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   resourceAppPaths: string[] = [];
   resourcePagePaths: string[] = [];
 
-  public static readonly rangeRegexPattern = /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/;
-  public static readonly partsRegexPattern = /(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/;
+  // public static readonly regexPattern = /(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/;
+  public static readonly regexPattern = /(get|post|put|delete|resource)\(['"](app|page):\/\/self\/(.*)['"]/;
 
   constructor(targetFileExtensions: string[] = [], resourceAppPaths: string[] = [], resourcePagePaths: string[] = []) {
     this.targetFileExtensions = targetFileExtensions;
@@ -15,28 +15,25 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
   }
 
   getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
-    // 現在のカーソル位置にある単語の範囲を取得する正規表現を定義
-    const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.rangeRegexPattern);
-    // 定義された範囲内のテキストを取得
+    const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.regexPattern);
+    if (range === undefined) { return []; }
+
     const selectedText = document.getText(range);
-    // 取得したテキストを特定のパターンにマッチさせる
-    const resourceParts = selectedText.match(PeekFileDefinitionProvider.partsRegexPattern);
+    const resourceParts = selectedText.match(PeekFileDefinitionProvider.regexPattern);
     if (resourceParts === null) { return []; }
-    // app OR page
-    const appOrPage = resourceParts[2];
-    // パスのクエリパラメータを無視し、スラッシュで区切られた各部分の先頭文字を大文字に変換して結合する
-    const slashed = resourceParts[3].split("?")[0].split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
-    // スラッシュで区切られた各部分の先頭文字を大文字に変換して結合した後、ハイフンで区切られた各部分の先頭文字を大文字に変換して結合する
-    const dashed = slashed.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
-    // onGet, onPost, onPut, onDelete, onResource
+  
     const method = "on" + resourceParts[1].charAt(0).toUpperCase() + resourceParts[1].slice(1);
+    const appOrPage = resourceParts[2];
+    const cutted = resourceParts[3].split(/'|"|#|\?|\{/)[0];
+    const upperd = cutted.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    const filePart = upperd.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
 
     let file = '';
     const possibleFileNames: any[] = [];
     if (appOrPage === 'app') {
       this.resourceAppPaths.forEach((resourceAppPath) => {
         this.targetFileExtensions.forEach((ext) => {
-          file = resourceAppPath + "/" + dashed;
+          file = resourceAppPath + "/" + filePart;
           possibleFileNames.push({
             file : file + ext,
             method : method
@@ -46,7 +43,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     } else {
       this.resourcePagePaths.forEach((resourcePagePath) => {
         this.targetFileExtensions.forEach((ext) => {
-          file = resourcePagePath + "/" + dashed;
+          file = resourcePagePath + "/" + filePart;
           possibleFileNames.push({
             file : file + ext,
             method : method
@@ -68,8 +65,9 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
 
   async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
     const resourceNameAndMethods = this.getResourceNameAndMethod(document, position);
-    const searchPathActions = resourceNameAndMethods.map(async resourceNameAndMethod => {
+    if(resourceNameAndMethods.length === 0) return [];
 
+    const searchPathActions = resourceNameAndMethods.map(async resourceNameAndMethod => {
       const files = await this.searchFilePath(resourceNameAndMethod.file);
       return files.map(file => {
         return {

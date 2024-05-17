@@ -1,8 +1,9 @@
-const rangeRegexPattern = /((get|post|put|delete|resource)?\(?['"]([^'"]*?)['"])/;
+// @see PeekFileDefinitionProvider.regexPattern
+const regexPattern = /(get|post|put|delete|resource)?\(?['"](app|page):\/\/self\/(.*)['"]/;
 
 function testRegexTrue(target) {
 	// Test
-	let match = target.match(rangeRegexPattern);
+	let match = target.match(regexPattern);
 	console.assert(match !== null, `${target} は正規表現にマッチするはずが、マッチしませんでした。`);
 
 	// Output
@@ -15,7 +16,7 @@ function testRegexTrue(target) {
 
 function testRegexFalse(target) {
 	// Test
-	let match = target.match(rangeRegexPattern);
+	let match = target.match(regexPattern);
 	console.assert(match === null, `${target} は正規表現にマッチしないはずが、マッチしました。`);
 
 	// Output
@@ -30,4 +31,4 @@ testRegexTrue("get('app://self/foo')");
 testRegexTrue("get('app://self/foo/bar')");
 testRegexTrue('uri("app://self/foo")');
 testRegexTrue('resource("app://self/foo")');
-// testRegexFalse('resource("foo://self/foo")');
+testRegexFalse('resource("foo://self/foo")');
