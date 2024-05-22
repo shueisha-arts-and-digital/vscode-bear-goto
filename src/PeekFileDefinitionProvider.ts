@@ -13,7 +13,52 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     this.resourcePagePaths = resourcePagePaths;
   }
 
-  getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
+  async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
+    const resourceNameAndMethods = this.getResourceNameAndMethod(document, position);
+    if(resourceNameAndMethods.length === 0) {return [];}
+
+    const searchPathActions = resourceNameAndMethods.map(async resourceNameAndMethod => {
+      const files = await this.searchFilePath(resourceNameAndMethod.file);
+      return files.map(file => {
+        return {
+          file: file,
+          method: resourceNameAndMethod.method
+        };
+      });
+    });
+    const searchPromises = Promise.all(searchPathActions); // pass array of promises
+    const paths = await searchPromises;
+
+    // @ts-ignore
+    const filePaths: any[] = [].concat.apply([], paths);
+    if (!filePaths.length) {
+      return undefined;
+    }
+
+    const allPaths: any[] = [];
+    for (const filePath of filePaths) {
+      const document = await vscode.workspace.openTextDocument(filePath.file.path);
+      const methodRegex = new RegExp(`\\bfunction\\s+${filePath.method}\\s*\\(`);
+      let found = false;
+      for (let line = 0; line < document.lineCount; line++) {
+          const lineText = document.lineAt(line).text;
+          if (methodRegex.test(lineText)) {
+              // メソッドが見つかった場合
+              allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(line, 0)));
+              found = true;
+              break;
+          }
+      }
+      if (!found) {
+          // メソッドが見つからなかった場合
+          allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(0, 0)));
+      }
+    }
+
+    return allPaths;
+  }
+
+  private getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
     const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.regexPattern);
     if (range === undefined) { return []; }
 
@@ -74,52 +119,7 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     return possibleFileNames;
   }
 
-  searchFilePath(fileName: String): Thenable<vscode.Uri[]> {
+  private searchFilePath(fileName: String): Thenable<vscode.Uri[]> {
     return vscode.workspace.findFiles(`**/${fileName}`, "**/vendor"); // Returns promise
-  }
-
-  async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
-    const resourceNameAndMethods = this.getResourceNameAndMethod(document, position);
-    if(resourceNameAndMethods.length === 0) {return [];}
-
-    const searchPathActions = resourceNameAndMethods.map(async resourceNameAndMethod => {
-      const files = await this.searchFilePath(resourceNameAndMethod.file);
-      return files.map(file => {
-        return {
-          file: file,
-          method: resourceNameAndMethod.method
-        };
-      });
-    });
-    const searchPromises = Promise.all(searchPathActions); // pass array of promises
-    const paths = await searchPromises;
-
-    // @ts-ignore
-    const filePaths: any[] = [].concat.apply([], paths);
-    if (!filePaths.length) {
-      return undefined;
-    }
-
-    const allPaths: any[] = [];
-    for (const filePath of filePaths) {
-      const document = await vscode.workspace.openTextDocument(filePath.file.path);
-      const methodRegex = new RegExp(`\\bfunction\\s+${filePath.method}\\s*\\(`);
-      let found = false;
-      for (let line = 0; line < document.lineCount; line++) {
-          const lineText = document.lineAt(line).text;
-          if (methodRegex.test(lineText)) {
-              // メソッドが見つかった場合
-              allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(line, 0)));
-              found = true;
-              break;
-          }
-      }
-      if (!found) {
-          // メソッドが見つからなかった場合
-          allPaths.push(new vscode.Location(vscode.Uri.file(filePath.file.path), new vscode.Position(0, 0)));
-      }
-    }
-
-    return allPaths;
   }
 }
