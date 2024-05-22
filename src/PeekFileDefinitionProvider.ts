@@ -13,55 +13,6 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     this.resourcePagePaths = resourcePagePaths;
   }
 
-  getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
-    const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.regexPattern);
-    if (range === undefined) { return []; }
-
-    const selectedText = document.getText(range);
-    const resourceParts = selectedText.match(PeekFileDefinitionProvider.regexPattern);
-    if (resourceParts === null) { return []; }
-  
-    const method = "on" + resourceParts[1].charAt(0).toUpperCase() + resourceParts[1].slice(1);
-    const appOrPage = resourceParts[2];
-    const cutted = resourceParts[3].split(/'|"|#|\?|\{/)[0];
-    const upperd = cutted.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
-    const filePart = upperd.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
-
-    let file = '';
-    const possibleFileNames: any[] = [];
-    if (appOrPage === 'app') {
-      this.resourceAppPaths.forEach((resourceAppPath) => {
-        this.targetFileExtensions.forEach((ext) => {
-          file = resourceAppPath + "/" + filePart;
-          possibleFileNames.push({
-            file : file + ext,
-            method : method
-          });
-        });
-      });
-    } else {
-      this.resourcePagePaths.forEach((resourcePagePath) => {
-        this.targetFileExtensions.forEach((ext) => {
-          file = resourcePagePath + "/" + filePart;
-          possibleFileNames.push({
-            file : file + ext,
-            method : method
-          });
-          possibleFileNames.push({
-            file : file + '/Index' + ext,
-            method : method
-          });
-        });
-      });
-    }
-
-    return possibleFileNames;
-  }
-
-  searchFilePath(fileName: String): Thenable<vscode.Uri[]> {
-    return vscode.workspace.findFiles(`**/${fileName}`, "**/vendor"); // Returns promise
-  }
-
   async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<any[] | vscode.Location | vscode.Location[] | undefined> {
     const resourceNameAndMethods = this.getResourceNameAndMethod(document, position);
     if(resourceNameAndMethods.length === 0) {return [];}
@@ -105,5 +56,70 @@ export default class PeekFileDefinitionProvider implements vscode.DefinitionProv
     }
 
     return allPaths;
+  }
+
+  private getResourceNameAndMethod(document: vscode.TextDocument, position: vscode.Position): any[] {
+    const range = document.getWordRangeAtPosition(position, PeekFileDefinitionProvider.regexPattern);
+    if (range === undefined) { return []; }
+
+    const selectedText = document.getText(range);
+    const resourceParts = selectedText.match(PeekFileDefinitionProvider.regexPattern);
+    if (resourceParts === null) { return []; }
+  
+    const method = this.getMethodName(resourceParts[1]);
+    const appOrPage = resourceParts[2];
+    const filePart = this.getFilePart(resourceParts[3]);
+
+    return this.getPossibleFileNames(appOrPage, filePart, method);
+  }
+
+  private getMethodName(httpMethod: string): string {
+    return "on" + httpMethod.charAt(0).toUpperCase() + httpMethod.slice(1);
+  }
+
+  private getFilePart(resourcePath: string): string {
+    const cutted = resourcePath.split(/'|"|#|\?|\{/)[0];
+    const upperd = cutted.split("/").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("/");
+    return upperd.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("");
+  }
+
+  private getPossibleFileNames(appOrPage: string, filePart: string, method: string): any[] {
+    const possibleFileNames: any[] = [];
+
+    // app
+    if (appOrPage === 'app') {
+      this.resourceAppPaths.forEach((resourceAppPath) => {
+        this.targetFileExtensions.forEach((ext) => {
+          const file = resourceAppPath + "/" + filePart;
+          possibleFileNames.push({
+            file : file + ext,
+            method : method
+          });
+        });
+      });
+
+      return possibleFileNames;
+    }
+
+    // page
+    this.resourcePagePaths.forEach((resourcePagePath) => {
+      this.targetFileExtensions.forEach((ext) => {
+        const file = resourcePagePath + "/" + filePart;
+        possibleFileNames.push({
+          file : file + ext,
+          method : method
+        });
+        possibleFileNames.push({
+          file : file + '/Index' + ext,
+          method : method
+        });
+      });
+    });
+
+    return possibleFileNames;
+  }
+
+  private searchFilePath(fileName: String): Thenable<vscode.Uri[]> {
+    return vscode.workspace.findFiles(`**/${fileName}`, "**/vendor"); // Returns promise
   }
 }

@@ -1,5 +1,11 @@
-// @see PeekFileDefinitionProvider.regexPattern
-const regexPattern = /(get|post|put|delete|resource|uri|ResourceParam|Embed)\(.*?(app|page):\/\/self\/(.*)['"]/;
+// PeekFileDefinitionProvider.regexPatternを取得する
+const fs = require('fs');
+const path = require('path');
+const filePath = path.join(__dirname, '../PeekFileDefinitionProvider.ts');
+const fileContent = fs.readFileSync(filePath, 'utf-8');
+const regexPatternLine = fileContent.split('\n').find(line => line.includes('regexPattern'));
+const regexPatternMatch = regexPatternLine.match(/regexPattern\s*=\s*(\/.*\/[gimsuy]*)/);
+const regexPattern = regexPatternMatch ? new RegExp(regexPatternMatch[1].slice(1, -1)) : null;
 
 function testRegexTrue(target) {
 	// Test
