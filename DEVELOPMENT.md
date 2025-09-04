@@ -20,4 +20,4 @@ vsce package
 # Publish automatically
 - https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 - https://dev.azure.com/yuki777/_usersSettings/tokens でPersonal Access Tokenを作成し、
-- https://github.com/pj8/vscode-bear-goto/settings/secrets/actions でVCSE_PATにセットする
+- https://github.com/shueisha-arts-and-digital/vscode-bear-goto/settings/secrets/actions でVCSE_PATにセットする
